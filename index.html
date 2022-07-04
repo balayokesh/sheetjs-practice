@@ -6,56 +6,48 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Javascript test</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
+        crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        let data = [
-            'No records'
-        ]
-        function handleDownload() {
-            alert('Clicked');
-            var workbook = XLSX.utils.book_new();
-            var worksheet = XLSX.utils.aoa_to_sheet(data);
-            workbook.SheetNames.push("First");
-            workbook.Sheets["First"] = worksheet;
-
-            // TO BINARY STRING
-            var xlsbin = XLSX.write(workbook, {
-                bookType: "xlsm",
-                type: "binary"
-            });
-
-            // TO BLOB OBJECT
-            var buffer = new ArrayBuffer(xlsbin.length),
-                array = new Uint8Array(buffer);
-            for (var i = 0; i < xlsbin.length; i++) {
-                array[i] = xlsbin.charCodeAt(i) & 0XFF;
-            }
-            var xlsblob = new Blob([buffer], { type: "application/octet-stream" });
-            delete array;
-            delete buffer;
-            delete xlsbin;
-
-            // Trigger download window
-            var url = window.URL.createObjectURL(xlsblob);
-            var anchor = document.createElement("a");
-            anchor.href = url;
-            anchor.download = "demo.xlsm";
-            anchor.click();
-            window.URL.revokeObjectURL(url);
-            delete anchor;
+        const triggerExcelUpdate = (e, data) => {
+            const file = e.target.files[0]
+            console.log("passing to function readExcel");
+            readExcel(file, data)
         }
 
-        function handleSubmit() {
+        const readExcel = async (file, data) => {
+            const fileReader = await new FileReader()
+            fileReader.readAsArrayBuffer(file)
+
+            fileReader.onload = (e) => {
+                const bufferArray = e.target.result
+                const wb = XLSX.read(bufferArray, { type: "buffer" })
+                const wsname = wb.SheetNames[1];
+                const ws = wb.Sheets[wsname];
+                XLSX.utils.sheet_add_aoa(
+                    ws, data, { origin: "B2" }
+                );
+
+                XLSX.writeFile(wb, 'after.xlsm');
+                console.log("updation completed");
+                document.getElementById('loader').innerHTML = "Changes done 👍";
+            }
+        }
+
+        function handleSubmit(e) {
             event.preventDefault();
+
             let mark1 = document.getElementById('mark1').value;
             let mark2 = document.getElementById('mark2').value;
             let mark3 = document.getElementById('mark3').value;
             let mark4 = document.getElementById('mark4').value;
             let mark5 = document.getElementById('mark5').value;
             let mark6 = document.getElementById('mark6').value;
-            
+
             console.log(mark1);
             console.log(mark2);
             console.log(mark3);
@@ -63,12 +55,66 @@
             console.log(mark5);
             console.log(mark6);
 
-            document.getElementById('output1').innerHTML = "Target Year: " + mark1;
-            document.getElementById('output2').innerHTML = "Region: " + mark2;
-            document.getElementById('output3').innerHTML = "Country Selector: " + mark3;
-            document.getElementById('output4').innerHTML = "Mode Selection: " + mark4;
-            document.getElementById('output5').innerHTML = "Fleet Selector: " + mark5;
-            document.getElementById('output6').innerHTML = "Vehicle Segment: " + mark6;
+            let data = [
+                [mark1],
+                ,
+                [mark2],
+                ,
+                [mark3],
+                ,
+                [mark4],
+                ,
+                [mark5],
+                ,
+                [mark6]
+            ]
+            document.getElementById('loader').innerHTML = "Making changes to file...";
+            triggerExcelUpdate(e, data);
+        }
+
+        const refreshOutput = async (e) => {
+            const file = e.target.files[0]
+            console.log(file);
+            const fileReader = await new FileReader()
+            fileReader.readAsArrayBuffer(file)
+            document.getElementById('loader2').innerHTML = "Fetching results...";
+            fileReader.onload = (e) => {
+                const bufferArray = e.target.result
+                const wb = XLSX.read(bufferArray, { type: "buffer" })
+                const wsname = wb.SheetNames[2];
+                const ws = wb.Sheets[wsname];
+
+                document.getElementById("B85").innerHTML = ws["B85"].v;
+                document.getElementById("B86").innerHTML = ws["B86"].v;
+                document.getElementById("B87").innerHTML = ws["B87"].v;
+                document.getElementById("B88").innerHTML = ws["B88"].v;
+                document.getElementById("B89").innerHTML = ws["B89"].v;
+                document.getElementById("B90").innerHTML = ws["B90"].v;
+                document.getElementById("B91").innerHTML = ws["B91"].v;
+                document.getElementById("B92").innerHTML = ws["B92"].v;
+                document.getElementById("B93").innerHTML = ws["B93"].v;
+                document.getElementById("C85").innerHTML = ws["C85"].v;
+                document.getElementById("C86").innerHTML = ws["C86"].v;
+                document.getElementById("C87").innerHTML = ws["C87"].v;
+                document.getElementById("C88").innerHTML = ws["C88"].v;
+                document.getElementById("C89").innerHTML = ws["C89"].v;
+                document.getElementById("C90").innerHTML = ws["C90"].v;
+                document.getElementById("C91").innerHTML = ws["C91"].v;
+                document.getElementById("C92").innerHTML = ws["C92"].v;
+                document.getElementById("C93").innerHTML = ws["C93"].v;
+                document.getElementById("D85").innerHTML = ws["D85"].v;
+                document.getElementById("D86").innerHTML = ws["D86"].v;
+                document.getElementById("D87").innerHTML = ws["D87"].v;
+                document.getElementById("D88").innerHTML = ws["D88"].v;
+                document.getElementById("D89").innerHTML = ws["D89"].v;
+                document.getElementById("D90").innerHTML = ws["D90"].v;
+                document.getElementById("D91").innerHTML = ws["D91"].v;
+                document.getElementById("D92").innerHTML = ws["D92"].v;
+                document.getElementById("D93").innerHTML = ws["D93"].v;
+
+                console.log("output updation completed");
+                document.getElementById('loader2').innerHTML = "Refresh success 👍";
+            }
         }
     </script>
 </head>
@@ -76,26 +122,9 @@
 <body class="text-center">
     <h1 class="h1 bg-dark p-3 text-white">Javascript test</h1>
 
-    <h3 class="text-left">
-        Data
-        <button class="btn btn-danger d-inline" onclick=handleDownload()> ↓ Download Excel</button>
-    </h3>
-    <div class="border rounded p-3 bg-success m-3 w-50 d-inline-block">
-        <p id='output1' class="h4">Target Year: -</p>
-        <hr />
-        <p id='output2' class="h4">Region: -</p>
-        <hr />
-        <p id='output3' class="h4">Country Selector: -</p>
-        <hr />
-        <p id="output4" class="h4">Mode Selection: -</p>
-        <hr />
-        <p id="output5" class="h4">Fleet Selector: -</p>
-        <hr />
-        <p id="output6" class="h4">Vehicle Segment: -</p>
-    </div>
-
     <h3>Data update form</h3>
-    <form class="border rounded p-3 bg-primary text-white m-3 w-50 d-inline-block">
+    <h2 id="loader"></h2>
+    <form class="border rounded p-3 bg-primary text-white m-3 w-75 d-inline-block">
         <br />
         <label for='mark1'>Target Year:</label>
         <input type='number' id='mark1' class="form-control w-50 d-inline m-1" placeholder="2050" />
@@ -115,7 +144,76 @@
         <label for='mark6'>Vehicle Segment:</label>
         <input type='number' id='mark6' class="form-control w-50 d-inline m-1" placeholder="5" />
         <br />
-        <button onclick=handleSubmit() class="btn btn-warning m-3">Update data</button>
+        <input type="file" onchange=handleSubmit(event) class="form-control btn btn-warning w-50" />
     </form>
+
+    <div class="border rounded p-3 bg-success text-white w-75 d-inline-block text-center">
+        <h3>Output</h3>
+        <h2 id="loader2" class="text-white"></h2>
+        <input type="file" class='form-control m-1 w-50 d-inline-block' onchange=refreshOutput(event)>
+        <table class="table table-striped table-bordered table-dark my-3">
+            <tr>
+                <th></th>
+                <th>Feedstock</th>
+                <th>Fuel</th>
+                <th>Vehicle Operation</th>
+            </tr>
+            <tr>
+                <td>Gasoline</td>
+                <td id="B85"></td>
+                <td id="C85"></td>
+                <td id="D85"></td>
+            </tr>
+            <tr>
+                <td>CNGV</td>
+                <td id="B86"></td>
+                <td id="C86"></td>
+                <td id="D86"></td>
+            </tr>
+            <tr>
+                <td>HEV Gasoline</td>
+                <td id="B87"></td>
+                <td id="C87"></td>
+                <td id="D87"></td>
+            </tr>
+            <tr>
+                <td>HEV CNG</td>
+                <td id="B88"></td>
+                <td id="C88"></td>
+                <td id="D88"></td>
+            </tr>
+            <tr>
+                <td>BEV</td>
+                <td id="B89"></td>
+                <td id="C89"></td>
+                <td id="D89"></td>
+            </tr>
+            <tr>
+                <td>Diesel</td>
+                <td id="B90"></td>
+                <td id="C90"></td>
+                <td id="D90"></td>
+            </tr>
+            <tr>
+                <td>LPG</td>
+                <td id="B91"></td>
+                <td id="C91"></td>
+                <td id="D91"></td>
+            </tr>
+            <tr>
+                <td>HEV Diesel</td>
+                <td id="B92"></td>
+                <td id="C92"></td>
+                <td id="D92"></td>
+            </tr>
+            <tr>
+                <td>PHEV</td>
+                <td id="B93"></td>
+                <td id="C93"></td>
+                <td id="D93"></td>
+            </tr>
+        </table>
+    </div>
 </body>
+
 </html>
