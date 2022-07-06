@@ -19,6 +19,7 @@
             readExcel(file, data)
         }
 
+        // Read excel file and edit cell values
         const readExcel = async (file, data) => {
             const fileReader = await new FileReader()
             fileReader.readAsArrayBuffer(file)
@@ -72,6 +73,7 @@
             triggerExcelUpdate(e, data);
         }
 
+        // Fetch cell values and display it in table
         const refreshOutput = async (e) => {
             const file = e.target.files[0]
             console.log(file);
